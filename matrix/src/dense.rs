@@ -1,3 +1,4 @@
+use alloc::vec;
 use alloc::vec::Vec;
 use core::iter::Cloned;
 use core::slice;
@@ -139,6 +140,48 @@ impl<T> RowMajorMatrix<T> {
             width: cols,
         }
     }
+
+    // cache oblivious RowMajorMatrix transposition logic
+    pub fn transpose(&self) -> Self
+    where
+        T: Copy,
+    {
+        let m = self.as_view();
+
+        let mut values = Vec::with_capacity(m.values.len());
+        unsafe {
+            values.set_len(m.values.len());
+        }
+
+        if self.width < 32 {
+            unsafe {
+                for i in 0..m.height() {
+                    for j in 0..m.width {
+                        *values.get_unchecked_mut(i * m.height() + j) =
+                            *m.values.get_unchecked(j * m.width + i);
+                    }
+                }
+            }
+        } else {
+            let k_c = m.width() / 2;
+            let k_r = m.height() / 2;
+
+            // transpose the 4 sub-matrices
+
+            // handle case with odd number of rows
+
+            // set diagonal elements
+
+
+        }
+
+        Self {
+            values,
+            width: self.height(),
+        }
+    }
+
+
 }
 
 impl<T> Matrix<T> for RowMajorMatrix<T> {
